@@ -1,48 +1,64 @@
-# Usar Qareeba - Home-made Businesses Directory
+# أسر قريبة | Nearby Productive Families SaaS
 
-A premium single-page RTL Arabic directory app for Productive Families (Home-based businesses), built with:
+Production-ready RTL Arabic SaaS marketplace for home-based businesses with a protected business dashboard.
 
-- HTML5
-- Tailwind CSS (CDN)
-- Vanilla JavaScript
-- Leaflet.js
+## Stack
+
+- Frontend: HTML + Tailwind + Vanilla JS (modular)
+- Backend: Supabase (Auth + Postgres + Storage + Realtime)
+- Mapping: Leaflet.js
+- Analytics Charts: Chart.js
+
+## App Pages
+
+- `index.html`: Marketplace (map, search, filters, favorites, AI recommendations)
+- `auth.html`: Business owner login/register
+- `dashboard.html`: Protected dashboard for business owners
+
+## Architecture
+
+- `js/config.js`: environment config
+- `js/lib/*`: Supabase client and utilities
+- `js/api/*`: API layer (auth/business/products/favorites/storage/analytics)
+- `js/state/*`: state management
+- `js/components/*`: reusable UI templates
+- `js/ai/*`: recommendation engine
+- `js/pages/*`: page controllers
+- `styles/main.css`: shared luxury light design system
+- `supabase/schema.sql`: DB + RLS + storage + analytics function
+- `config.runtime.js`: runtime deployment config
 
 ## Features
 
-- RTL Arabic layout with `Tajawal` body and `Cairo` headings.
-- Split-screen desktop layout (sidebar + full map).
-- Mobile bottom-sheet list with full-screen map.
-- Advanced live search and category pill filters.
-- Leaflet custom circular DivIcon markers with glow, pulse, and hover scaling.
-- Glassmorphism business cards with floating category badges.
-- Slide-over business profile panel with product price grid.
-- Multi-step registration modal with location picker map.
+- Visitor browsing + Business owner authentication
+- Session persistence and route protection
+- Realtime marketplace updates
+- Favorites synchronized across sessions
+- AI recommendation scoring:
+	- category match
+	- click behavior
+	- favorites
+	- rating and distance
+- Business dashboard:
+	- overview metrics
+	- profile/location management
+	- product CRUD
+	- image upload + client-side compression
+	- analytics chart
+	- AI description suggestion (optional OpenAI key)
 
-## Run Locally
-
-No build step needed.
-
-1. Open the project folder.
-2. Serve it with any static server, for example:
+## Local Run
 
 ```bash
 python3 -m http.server 4173
 ```
 
-3. Open:
+Open `http://localhost:4173`.
 
-```text
-http://localhost:4173
-```
+## Setup and Deployment
 
-## Deploy (GitHub Pages)
+1. Configure Supabase and run SQL schema: `supabase/schema.sql`.
+2. Set credentials in `config.runtime.js` (or fallback in `js/config.js`).
+3. Deploy as static app (GitHub Pages / Netlify / Vercel).
 
-This repository includes a GitHub Actions workflow for Pages deployment from the `main` branch.
-
-1. Push to `main`.
-2. In GitHub repository settings, ensure **Pages** source is **GitHub Actions**.
-3. The workflow publishes automatically on every push to `main`.
-
-## Main File
-
-- `index.html`
+Detailed steps: `SETUP.md`.
