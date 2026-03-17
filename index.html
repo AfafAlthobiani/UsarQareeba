@@ -1,0 +1,1052 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>أسر قريبة | دليل الأسر المنتجة</title>
+
+    <!-- Fonts -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cairo:wght@600;700;800&family=Tajawal:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Leaflet CSS -->
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+      crossorigin=""
+    />
+
+    <style>
+      :root {
+        --deep-navy: #0f172a;
+        --deep-navy-soft: #1e293b;
+        --deep-navy-dim: #334155;
+        --gold: #c5a059;
+        --gold-soft: #e4c88b;
+        --glass: rgba(15, 23, 42, 0.56);
+        --glass-2: rgba(15, 23, 42, 0.7);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+        font-family: "Tajawal", sans-serif;
+        background:
+          radial-gradient(circle at 10% 10%, rgba(197, 160, 89, 0.18) 0, transparent 35%),
+          radial-gradient(circle at 90% 20%, rgba(148, 163, 184, 0.12) 0, transparent 42%),
+          linear-gradient(135deg, #020617 0%, #0f172a 45%, #111827 100%);
+        color: #f8fafc;
+      }
+
+      h1,
+      h2,
+      h3,
+      h4,
+      h5 {
+        font-family: "Cairo", sans-serif;
+      }
+
+      .app-shell {
+        height: 100vh;
+        width: 100%;
+        direction: ltr;
+      }
+
+      .sidebar {
+        width: 400px;
+        max-width: 100%;
+        direction: rtl;
+        background: linear-gradient(190deg, rgba(2, 6, 23, 0.86), rgba(15, 23, 42, 0.65));
+        border-right: 1px solid rgba(148, 163, 184, 0.2);
+        -webkit-backdrop-filter: blur(16px);
+        backdrop-filter: blur(16px);
+      }
+
+      #map {
+        direction: rtl;
+        width: 100%;
+        height: 100%;
+      }
+
+      .glass-card {
+        position: relative;
+        background: linear-gradient(145deg, rgba(30, 41, 59, 0.54), rgba(15, 23, 42, 0.72));
+        border: 1px solid rgba(197, 160, 89, 0.25);
+        border-radius: 1rem;
+        box-shadow: 0 10px 30px rgba(2, 6, 23, 0.45);
+        transition: transform 0.24s ease, box-shadow 0.24s ease, border-color 0.24s ease;
+        -webkit-backdrop-filter: blur(9px);
+        backdrop-filter: blur(9px);
+      }
+
+      .glass-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 18px 45px rgba(2, 6, 23, 0.5);
+        border-color: rgba(197, 160, 89, 0.6);
+      }
+
+      .floating-badge {
+        position: absolute;
+        top: -11px;
+        left: 14px;
+        background: linear-gradient(135deg, #d8ba78, #b5863f);
+        color: #111827;
+        font-size: 0.75rem;
+        font-weight: 700;
+        border-radius: 999px;
+        padding: 0.24rem 0.65rem;
+        box-shadow: 0 8px 16px rgba(197, 160, 89, 0.36);
+      }
+
+      .category-pill {
+        border: 1px solid rgba(197, 160, 89, 0.45);
+        color: #e2e8f0;
+        border-radius: 999px;
+        padding: 0.35rem 0.8rem;
+        background: rgba(15, 23, 42, 0.45);
+        transition: all 0.2s ease;
+      }
+
+      .category-pill:hover {
+        border-color: rgba(197, 160, 89, 0.9);
+        transform: translateY(-1px);
+      }
+
+      .category-pill.active {
+        background: linear-gradient(120deg, rgba(197, 160, 89, 0.9), rgba(166, 120, 51, 0.95));
+        color: #0f172a;
+        border-color: transparent;
+        font-weight: 700;
+        box-shadow: 0 8px 18px rgba(197, 160, 89, 0.35);
+      }
+
+      .leaflet-control-zoom a {
+        background-color: rgba(15, 23, 42, 0.86);
+        color: #f8fafc;
+        border-bottom: 1px solid rgba(148, 163, 184, 0.35);
+      }
+
+      .leaflet-control-zoom a:hover {
+        background-color: rgba(30, 41, 59, 0.94);
+      }
+
+      .custom-marker-wrapper {
+        width: 62px;
+        height: 62px;
+        border-radius: 999px;
+        display: grid;
+        place-items: center;
+        background: radial-gradient(circle at 30% 30%, rgba(212, 179, 117, 0.65), rgba(69, 54, 30, 0.12));
+        border: 2px solid rgba(228, 200, 139, 0.95);
+        box-shadow:
+          0 0 0 6px rgba(197, 160, 89, 0.16),
+          0 0 26px rgba(197, 160, 89, 0.65),
+          0 12px 25px rgba(2, 6, 23, 0.52);
+        animation: pulseGold 2.6s ease-in-out infinite;
+        transition: transform 0.2s ease;
+      }
+
+      .custom-marker-wrapper:hover {
+        transform: scale(1.12);
+      }
+
+      .marker-avatar {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 1px solid rgba(248, 250, 252, 0.6);
+      }
+
+      .marker-emoji {
+        font-size: 1.7rem;
+        line-height: 1;
+      }
+
+      .leaflet-marker-icon.active-marker .custom-marker-wrapper {
+        transform: scale(1.15);
+        box-shadow:
+          0 0 0 8px rgba(197, 160, 89, 0.24),
+          0 0 34px rgba(197, 160, 89, 0.95),
+          0 16px 30px rgba(2, 6, 23, 0.62);
+      }
+
+      @keyframes pulseGold {
+        0% {
+          box-shadow:
+            0 0 0 6px rgba(197, 160, 89, 0.18),
+            0 0 20px rgba(197, 160, 89, 0.5),
+            0 12px 25px rgba(2, 6, 23, 0.52);
+        }
+        50% {
+          box-shadow:
+            0 0 0 10px rgba(197, 160, 89, 0.05),
+            0 0 28px rgba(197, 160, 89, 0.75),
+            0 12px 25px rgba(2, 6, 23, 0.52);
+        }
+        100% {
+          box-shadow:
+            0 0 0 6px rgba(197, 160, 89, 0.18),
+            0 0 20px rgba(197, 160, 89, 0.5),
+            0 12px 25px rgba(2, 6, 23, 0.52);
+        }
+      }
+
+      .slide-panel {
+        position: absolute;
+        top: 0;
+        right: 0;
+        height: 100%;
+        width: min(460px, 100%);
+        transform: translateX(105%);
+        transition: transform 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+        background: linear-gradient(185deg, rgba(2, 6, 23, 0.93), rgba(15, 23, 42, 0.95));
+        border-left: 1px solid rgba(148, 163, 184, 0.26);
+        -webkit-backdrop-filter: blur(14px);
+        backdrop-filter: blur(14px);
+        z-index: 900;
+        overflow-y: auto;
+      }
+
+      .slide-panel.open {
+        transform: translateX(0);
+        animation: slideInPanel 0.46s cubic-bezier(0.22, 1, 0.36, 1);
+      }
+
+      @keyframes slideInPanel {
+        0% {
+          transform: translateX(115%);
+          opacity: 0.3;
+        }
+        100% {
+          transform: translateX(0);
+          opacity: 1;
+        }
+      }
+
+      .menu-card {
+        background: linear-gradient(150deg, rgba(51, 65, 85, 0.35), rgba(15, 23, 42, 0.78));
+        border: 1px solid rgba(148, 163, 184, 0.28);
+        border-radius: 0.9rem;
+        overflow: hidden;
+      }
+
+      .menu-image {
+        height: 92px;
+        background:
+          linear-gradient(135deg, rgba(148, 163, 184, 0.2), rgba(100, 116, 139, 0.45)),
+          radial-gradient(circle at 70% 20%, rgba(197, 160, 89, 0.3), transparent 52%);
+      }
+
+      .social-chip {
+        border-radius: 999px;
+        border: 1px solid rgba(148, 163, 184, 0.32);
+        color: #f1f5f9;
+        background: rgba(30, 41, 59, 0.45);
+        padding: 0.4rem 0.75rem;
+      }
+
+      .registration-modal {
+        position: fixed;
+        inset: 0;
+        background: rgba(2, 6, 23, 0.72);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+      }
+
+      .registration-modal.open {
+        display: flex;
+      }
+
+      .modal-card {
+        width: min(740px, 94vw);
+        border-radius: 1.1rem;
+        border: 1px solid rgba(148, 163, 184, 0.3);
+        background: linear-gradient(155deg, rgba(15, 23, 42, 0.96), rgba(30, 41, 59, 0.94));
+        box-shadow: 0 24px 80px rgba(2, 6, 23, 0.65);
+      }
+
+      .step-dot {
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        background: rgba(148, 163, 184, 0.45);
+      }
+
+      .step-dot.active {
+        width: 28px;
+        border-radius: 999px;
+        background: linear-gradient(120deg, #d6b56f, #a47538);
+      }
+
+      #pickerMap {
+        height: 230px;
+        border-radius: 0.8rem;
+        border: 1px solid rgba(148, 163, 184, 0.35);
+      }
+
+      .mobile-sheet {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        max-height: 80vh;
+        border-radius: 1.2rem 1.2rem 0 0;
+        border: 1px solid rgba(148, 163, 184, 0.25);
+        background: linear-gradient(185deg, rgba(2, 6, 23, 0.96), rgba(15, 23, 42, 0.94));
+        transform: translateY(52%);
+        transition: transform 0.35s ease;
+        z-index: 700;
+      }
+
+      .mobile-sheet.open {
+        transform: translateY(0);
+      }
+
+      .sheet-handle {
+        width: 52px;
+        height: 6px;
+        border-radius: 999px;
+        margin: 0.7rem auto 0.8rem;
+        background: rgba(203, 213, 225, 0.5);
+      }
+
+      .map-overlay {
+        position: absolute;
+        left: 1rem;
+        top: 1rem;
+        z-index: 500;
+      }
+
+      @media (max-width: 1023px) {
+        .sidebar {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="app-shell relative lg:grid lg:grid-cols-[400px_minmax(0,1fr)]">
+      <!-- Sidebar for desktop -->
+      <aside class="sidebar hidden lg:flex flex-col h-full">
+        <div class="p-6 border-b border-slate-700/50">
+          <div class="flex items-start justify-between gap-3">
+            <div>
+              <p class="text-xs tracking-[0.22em] text-gold-200/80">ASAR QARIBA STYLE</p>
+              <h1 class="text-2xl font-extrabold text-slate-50">دليل الأسر المنتجة</h1>
+              <p class="text-slate-300 text-sm mt-1">اكتشف أفضل المشاريع المنزلية القريبة منك</p>
+            </div>
+            <button
+              id="openRegisterDesktop"
+              class="shrink-0 rounded-xl bg-gradient-to-br from-amber-300 to-amber-500 text-slate-900 font-bold px-3 py-2 text-sm shadow-lg shadow-amber-500/30"
+            >
+              انضم الآن
+            </button>
+          </div>
+
+          <div class="mt-4 relative">
+            <input
+              id="searchInputDesktop"
+              type="text"
+              placeholder="ابحث باسم المشروع أو المنتج"
+              class="w-full rounded-2xl bg-slate-900/70 border border-slate-700/70 text-slate-100 placeholder-slate-400 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-amber-500/40"
+            />
+          </div>
+
+          <div id="categoryPillsDesktop" class="mt-4 flex flex-wrap gap-2"></div>
+        </div>
+
+        <div id="businessListDesktop" class="p-5 space-y-4 overflow-y-auto"></div>
+      </aside>
+
+      <!-- Map and overlays -->
+      <section class="relative h-full min-h-[100vh]">
+        <div id="map"></div>
+
+        <div class="map-overlay lg:hidden">
+          <button
+            id="toggleSheetBtn"
+            class="rounded-xl bg-slate-900/85 border border-slate-600 px-3 py-2 text-sm font-bold shadow-xl"
+          >
+            القائمة
+          </button>
+        </div>
+
+        <!-- Mobile bottom sheet -->
+        <div id="mobileSheet" class="mobile-sheet lg:hidden" dir="rtl">
+          <div class="sheet-handle"></div>
+          <div class="px-4 pb-4">
+            <div class="flex items-start justify-between gap-2">
+              <div>
+                <h2 class="text-xl font-extrabold">الأسر المنتجة</h2>
+                <p class="text-xs text-slate-300">اختر مشروعًا لعرض تفاصيله</p>
+              </div>
+              <button
+                id="openRegisterMobile"
+                class="rounded-xl bg-gradient-to-br from-amber-300 to-amber-500 text-slate-900 font-bold px-3 py-2 text-xs"
+              >
+                تسجيل
+              </button>
+            </div>
+
+            <div class="mt-3">
+              <input
+                id="searchInputMobile"
+                type="text"
+                placeholder="بحث سريع"
+                class="w-full rounded-2xl bg-slate-900/70 border border-slate-700/70 text-slate-100 placeholder-slate-400 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-amber-500/40"
+              />
+            </div>
+
+            <div id="categoryPillsMobile" class="mt-3 flex flex-wrap gap-2"></div>
+            <div id="businessListMobile" class="mt-4 space-y-3 max-h-[47vh] overflow-y-auto"></div>
+          </div>
+        </div>
+
+        <!-- Slide-over profile panel -->
+        <aside id="profilePanel" class="slide-panel" dir="rtl">
+          <div id="profileContent"></div>
+        </aside>
+      </section>
+    </div>
+
+    <!-- Multi-step registration modal -->
+    <div id="registrationModal" class="registration-modal" dir="rtl">
+      <div class="modal-card p-6">
+        <div class="flex items-start justify-between gap-3">
+          <div>
+            <h3 class="text-2xl font-extrabold">انضم إلى الدليل</h3>
+            <p class="text-sm text-slate-300">نموذج تسجيل الأسر المنتجة بخطوات بسيطة</p>
+          </div>
+          <button id="closeRegister" class="text-slate-300 hover:text-white text-xl leading-none">×</button>
+        </div>
+
+        <div class="flex items-center gap-2 mt-4" id="stepDots"></div>
+
+        <form id="registrationForm" class="mt-5 space-y-5">
+          <div class="reg-step" data-step="1">
+            <div class="grid sm:grid-cols-2 gap-4">
+              <label class="block">
+                <span class="text-sm text-slate-200">اسم المشروع</span>
+                <input required name="bizName" class="mt-1 w-full rounded-xl bg-slate-900/70 border border-slate-700 px-3 py-2" />
+              </label>
+              <label class="block">
+                <span class="text-sm text-slate-200">اسم صاحبة المشروع</span>
+                <input required name="owner" class="mt-1 w-full rounded-xl bg-slate-900/70 border border-slate-700 px-3 py-2" />
+              </label>
+            </div>
+            <label class="block mt-4">
+              <span class="text-sm text-slate-200">نبذة مختصرة</span>
+              <textarea name="about" rows="3" class="mt-1 w-full rounded-xl bg-slate-900/70 border border-slate-700 px-3 py-2"></textarea>
+            </label>
+          </div>
+
+          <div class="reg-step hidden" data-step="2">
+            <div class="grid sm:grid-cols-2 gap-4">
+              <label class="block">
+                <span class="text-sm text-slate-200">التصنيف</span>
+                <select name="category" class="mt-1 w-full rounded-xl bg-slate-900/70 border border-slate-700 px-3 py-2">
+                  <option>حلويات</option>
+                  <option>طبخ منزلي</option>
+                  <option>قهوة مختصة</option>
+                  <option>مخبوزات</option>
+                  <option>حِرَف يدوية</option>
+                </select>
+              </label>
+              <label class="block">
+                <span class="text-sm text-slate-200">واتساب</span>
+                <input name="whatsapp" placeholder="05XXXXXXXX" class="mt-1 w-full rounded-xl bg-slate-900/70 border border-slate-700 px-3 py-2" />
+              </label>
+            </div>
+            <div class="grid sm:grid-cols-2 gap-4 mt-4">
+              <label class="block">
+                <span class="text-sm text-slate-200">انستغرام</span>
+                <input name="instagram" placeholder="@account" class="mt-1 w-full rounded-xl bg-slate-900/70 border border-slate-700 px-3 py-2" />
+              </label>
+              <label class="block">
+                <span class="text-sm text-slate-200">ساعات العمل</span>
+                <input name="hours" placeholder="4م - 11م" class="mt-1 w-full rounded-xl bg-slate-900/70 border border-slate-700 px-3 py-2" />
+              </label>
+            </div>
+          </div>
+
+          <div class="reg-step hidden" data-step="3">
+            <p class="text-sm text-slate-300 mb-3">اختاري موقع مشروعك على الخريطة:</p>
+            <div id="pickerMap"></div>
+            <p id="pickedLocationText" class="text-xs text-slate-300 mt-2">الموقع المختار: لم يتم التحديد بعد</p>
+          </div>
+
+          <div class="flex items-center justify-between pt-1">
+            <button type="button" id="prevStep" class="rounded-xl border border-slate-600 px-4 py-2 text-sm">السابق</button>
+            <div class="flex items-center gap-2">
+              <button type="button" id="nextStep" class="rounded-xl bg-gradient-to-br from-amber-300 to-amber-500 text-slate-900 font-bold px-5 py-2 text-sm">
+                التالي
+              </button>
+              <button type="submit" id="submitRegister" class="hidden rounded-xl bg-emerald-500 text-emerald-950 font-bold px-5 py-2 text-sm">
+                إرسال الطلب
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script
+      src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+      integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+      crossorigin=""
+    ></script>
+
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              gold: {
+                200: "#E4C88B",
+                400: "#C5A059",
+              },
+            },
+          },
+        },
+      };
+
+      const businesses = [
+        {
+          id: 1,
+          name: "ركن السعادة للحلويات",
+          category: "حلويات",
+          rating: 4.9,
+          distance: "1.4 كم",
+          emoji: "🍰",
+          avatar:
+            "https://images.unsplash.com/photo-1559622214-1a3f6d44e180?auto=format&fit=crop&w=200&q=80",
+          cover:
+            "https://images.unsplash.com/photo-1519864600265-abb23847ef2c?auto=format&fit=crop&w=1200&q=80",
+          lat: 24.7136,
+          lng: 46.6753,
+          hours: "2:00م - 11:30م",
+          locationText: "حي الربيع - الرياض",
+          whatsapp: "https://wa.me/966500001111",
+          instagram: "https://instagram.com",
+          menu: [
+            { name: "تشيز كيك التمر", price: "58 ر.س" },
+            { name: "ميني كيك بوكس", price: "75 ر.س" },
+            { name: "براونيز فاخر", price: "42 ر.س" },
+            { name: "بوكس مناسبات", price: "120 ر.س" },
+          ],
+        },
+        {
+          id: 2,
+          name: "مذاق البيت للطبخ",
+          category: "طبخ منزلي",
+          rating: 4.7,
+          distance: "2.1 كم",
+          emoji: "🍲",
+          avatar:
+            "https://images.unsplash.com/photo-1577219491135-ce391730fb2c?auto=format&fit=crop&w=200&q=80",
+          cover:
+            "https://images.unsplash.com/photo-1498837167922-ddd27525d352?auto=format&fit=crop&w=1200&q=80",
+          lat: 24.7048,
+          lng: 46.676,
+          hours: "12:00م - 10:00م",
+          locationText: "حي الياسمين - الرياض",
+          whatsapp: "https://wa.me/966500002222",
+          instagram: "https://instagram.com",
+          menu: [
+            { name: "مندي دجاج", price: "45 ر.س" },
+            { name: "مقلوبة لحم", price: "52 ر.س" },
+            { name: "صينية كبة", price: "48 ر.س" },
+            { name: "ورق عنب", price: "34 ر.س" },
+          ],
+        },
+        {
+          id: 3,
+          name: "قهوة مزاج",
+          category: "قهوة",
+          rating: 4.8,
+          distance: "0.9 كم",
+          emoji: "☕",
+          avatar:
+            "https://images.unsplash.com/photo-1511537190424-bbbab87ac5eb?auto=format&fit=crop&w=200&q=80",
+          cover:
+            "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=1200&q=80",
+          lat: 24.7193,
+          lng: 46.69,
+          hours: "5:00م - 1:00ص",
+          locationText: "حي النخيل - الرياض",
+          whatsapp: "https://wa.me/966500003333",
+          instagram: "https://instagram.com",
+          menu: [
+            { name: "لاتيه زعفران", price: "22 ر.س" },
+            { name: "قهوة اليوم", price: "14 ر.س" },
+            { name: "كوكيز شوكولاتة", price: "12 ر.س" },
+            { name: "موهيتو قهوة", price: "19 ر.س" },
+          ],
+        },
+        {
+          id: 4,
+          name: "فرن دارنا",
+          category: "مخبوزات",
+          rating: 4.6,
+          distance: "3.2 كم",
+          emoji: "🥖",
+          avatar:
+            "https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=200&q=80",
+          cover:
+            "https://images.unsplash.com/photo-1608198093002-ad4e005484ec?auto=format&fit=crop&w=1200&q=80",
+          lat: 24.695,
+          lng: 46.688,
+          hours: "6:00ص - 8:00م",
+          locationText: "حي العقيق - الرياض",
+          whatsapp: "https://wa.me/966500004444",
+          instagram: "https://instagram.com",
+          menu: [
+            { name: "كرواسون زبدة", price: "9 ر.س" },
+            { name: "فطيرة جبن", price: "8 ر.س" },
+            { name: "خبز بريوش", price: "15 ر.س" },
+            { name: "معمول تمر", price: "28 ر.س" },
+          ],
+        },
+        {
+          id: 5,
+          name: "لمسة فن",
+          category: "حِرَف يدوية",
+          rating: 4.9,
+          distance: "2.7 كم",
+          emoji: "🧵",
+          avatar: null,
+          cover:
+            "https://images.unsplash.com/photo-1452860606245-08befc0ff44b?auto=format&fit=crop&w=1200&q=80",
+          lat: 24.723,
+          lng: 46.669,
+          hours: "4:00م - 10:00م",
+          locationText: "حي الملقا - الرياض",
+          whatsapp: "https://wa.me/966500005555",
+          instagram: "https://instagram.com",
+          menu: [
+            { name: "شموع معطرة", price: "35 ر.س" },
+            { name: "باقة هدايا", price: "60 ر.س" },
+            { name: "ميدالية مخصصة", price: "25 ر.س" },
+            { name: "لوحة اسم", price: "45 ر.س" },
+          ],
+        },
+      ];
+
+      const categoryLabels = ["الكل", "حلويات", "طبخ منزلي", "قهوة", "مخبوزات", "حِرَف يدوية"];
+
+      const state = {
+        activeCategory: "الكل",
+        query: "",
+        activeBusinessId: null,
+        isMobileSheetOpen: false,
+        registerStep: 1,
+        pickedLatLng: null,
+      };
+
+      const map = L.map("map", { zoomControl: true }).setView([24.7136, 46.6753], 12);
+
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        maxZoom: 19,
+        attribution: "&copy; OpenStreetMap contributors",
+      }).addTo(map);
+
+      const markersLayer = L.layerGroup().addTo(map);
+      const markerRefs = new Map();
+
+      function buildMarkerIcon(biz) {
+        const inner = biz.avatar
+          ? `<img class="marker-avatar" src="${biz.avatar}" alt="${biz.name}" />`
+          : `<span class="marker-emoji">${biz.emoji || "📍"}</span>`;
+
+        return L.divIcon({
+          className: "",
+          html: `<div class="custom-marker-wrapper" title="${biz.name}">${inner}</div>`,
+          iconSize: [62, 62],
+          iconAnchor: [31, 31],
+          popupAnchor: [0, -30],
+        });
+      }
+
+      function renderMarkers(filtered) {
+        markersLayer.clearLayers();
+        markerRefs.clear();
+
+        filtered.forEach((biz) => {
+          const marker = L.marker([biz.lat, biz.lng], { icon: buildMarkerIcon(biz) });
+          marker.on("click", () => {
+            openBusinessProfile(biz.id, true);
+          });
+          marker.addTo(markersLayer);
+          markerRefs.set(biz.id, marker);
+        });
+      }
+
+      function cardTemplate(biz) {
+        return `
+          <article class="glass-card p-4 cursor-pointer" data-business-id="${biz.id}">
+            <span class="floating-badge">${biz.category}</span>
+            <div class="flex items-start gap-3">
+              <img
+                src="${biz.avatar || "https://images.unsplash.com/photo-1545239351-1141bd82e8a6?auto=format&fit=crop&w=200&q=80"}"
+                alt="${biz.name}"
+                class="w-14 h-14 rounded-full object-cover border border-slate-500"
+              />
+              <div class="flex-1 min-w-0">
+                <h3 class="font-extrabold text-lg truncate text-slate-100">${biz.name}</h3>
+                <div class="flex items-center justify-between text-sm mt-1 text-slate-300">
+                  <span>⭐ ${biz.rating}</span>
+                  <span>${biz.distance}</span>
+                </div>
+                <p class="text-xs text-amber-200/90 mt-2">${biz.locationText}</p>
+              </div>
+            </div>
+          </article>
+        `;
+      }
+
+      function renderBusinessList(filtered) {
+        const desktopList = document.getElementById("businessListDesktop");
+        const mobileList = document.getElementById("businessListMobile");
+
+        const html = filtered.length
+          ? filtered.map(cardTemplate).join("")
+          : `<div class="glass-card p-6 text-center text-slate-300">لا توجد نتائج مطابقة</div>`;
+
+        desktopList.innerHTML = html;
+        mobileList.innerHTML = html;
+
+        [desktopList, mobileList].forEach((listEl) => {
+          listEl.querySelectorAll("[data-business-id]").forEach((card) => {
+            card.addEventListener("click", () => {
+              openBusinessProfile(Number(card.dataset.businessId), true);
+            });
+          });
+        });
+      }
+
+      function renderCategoryPills() {
+        const desktopContainer = document.getElementById("categoryPillsDesktop");
+        const mobileContainer = document.getElementById("categoryPillsMobile");
+
+        const pillsHtml = categoryLabels
+          .map(
+            (cat) => `
+              <button class="category-pill ${state.activeCategory === cat ? "active" : ""}" data-category="${cat}">
+                ${cat}
+              </button>
+            `
+          )
+          .join("");
+
+        desktopContainer.innerHTML = pillsHtml;
+        mobileContainer.innerHTML = pillsHtml;
+
+        [desktopContainer, mobileContainer].forEach((container) => {
+          container.querySelectorAll("[data-category]").forEach((btn) => {
+            btn.addEventListener("click", () => {
+              state.activeCategory = btn.dataset.category;
+              applyFilters();
+            });
+          });
+        });
+      }
+
+      function applyFilters() {
+        const q = state.query.trim().toLowerCase();
+
+        const filtered = businesses.filter((biz) => {
+          const categoryMatch = state.activeCategory === "الكل" || biz.category === state.activeCategory;
+          const textMatch =
+            !q ||
+            biz.name.toLowerCase().includes(q) ||
+            biz.category.toLowerCase().includes(q) ||
+            biz.menu.some((item) => item.name.toLowerCase().includes(q));
+          return categoryMatch && textMatch;
+        });
+
+        renderCategoryPills();
+        renderBusinessList(filtered);
+        renderMarkers(filtered);
+
+        if (filtered.length > 0) {
+          const group = L.featureGroup(filtered.map((biz) => L.marker([biz.lat, biz.lng])));
+          map.fitBounds(group.getBounds(), { padding: [70, 70], maxZoom: 14 });
+        }
+
+        if (state.activeBusinessId && !filtered.some((b) => b.id === state.activeBusinessId)) {
+          closeProfilePanel();
+        }
+      }
+
+      function profileTemplate(biz) {
+        const menuHtml = biz.menu
+          .map(
+            (item) => `
+              <div class="menu-card">
+                <div class="menu-image"></div>
+                <div class="p-3">
+                  <h5 class="font-bold text-slate-100">${item.name}</h5>
+                  <p class="text-amber-200 font-bold mt-1">${item.price}</p>
+                </div>
+              </div>
+            `
+          )
+          .join("");
+
+        return `
+          <div class="pb-8">
+            <div class="relative h-48 overflow-hidden border-b border-slate-700/70">
+              <img src="${biz.cover}" alt="${biz.name}" class="w-full h-full object-cover" />
+              <button
+                id="closeProfile"
+                class="absolute top-4 left-4 w-9 h-9 rounded-full bg-slate-900/70 border border-slate-500 text-slate-100"
+              >
+                ×
+              </button>
+              <div class="absolute -bottom-9 right-6">
+                <img
+                  src="${biz.avatar || "https://images.unsplash.com/photo-1545239351-1141bd82e8a6?auto=format&fit=crop&w=200&q=80"}"
+                  alt="${biz.name}"
+                  class="w-20 h-20 rounded-full border-4 border-amber-400 shadow-xl object-cover"
+                />
+              </div>
+            </div>
+
+            <div class="px-6 pt-12">
+              <h4 class="text-2xl font-extrabold">${biz.name}</h4>
+              <div class="flex items-center justify-between text-sm text-slate-300 mt-2">
+                <span>⭐ ${biz.rating}</span>
+                <span>${biz.distance}</span>
+              </div>
+
+              <div class="mt-4 flex items-center gap-2 flex-wrap">
+                <span class="social-chip">${biz.category}</span>
+                <span class="social-chip">🕒 ${biz.hours}</span>
+                <span class="social-chip">📍 ${biz.locationText}</span>
+              </div>
+
+              <div class="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <a href="${biz.instagram}" target="_blank" class="social-chip text-center hover:bg-slate-700/60">Instagram</a>
+                <a
+                  href="${biz.whatsapp}"
+                  target="_blank"
+                  class="rounded-full bg-emerald-500 text-emerald-950 font-bold text-center py-2 px-3"
+                >
+                  تواصل واتساب
+                </a>
+              </div>
+
+              <div class="mt-7">
+                <h5 class="text-lg font-extrabold mb-3">قائمة المنتجات</h5>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">${menuHtml}</div>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      function updateActiveMarker() {
+        markerRefs.forEach((marker, id) => {
+          const el = marker.getElement();
+          if (!el) return;
+          el.classList.toggle("active-marker", id === state.activeBusinessId);
+        });
+      }
+
+      function openBusinessProfile(id, focusMap = false) {
+        const biz = businesses.find((b) => b.id === id);
+        if (!biz) return;
+
+        state.activeBusinessId = id;
+
+        const panel = document.getElementById("profilePanel");
+        const content = document.getElementById("profileContent");
+        content.innerHTML = profileTemplate(biz);
+
+        panel.classList.add("open");
+        updateActiveMarker();
+
+        const closeBtn = document.getElementById("closeProfile");
+        closeBtn.addEventListener("click", closeProfilePanel);
+
+        if (focusMap) {
+          map.flyTo([biz.lat, biz.lng], Math.max(14, map.getZoom()), { duration: 0.8 });
+        }
+      }
+
+      function closeProfilePanel() {
+        state.activeBusinessId = null;
+        document.getElementById("profilePanel").classList.remove("open");
+        updateActiveMarker();
+      }
+
+      function setupSearchInputs() {
+        const desktopInput = document.getElementById("searchInputDesktop");
+        const mobileInput = document.getElementById("searchInputMobile");
+
+        function syncAndFilter(value) {
+          state.query = value;
+          desktopInput.value = value;
+          mobileInput.value = value;
+          applyFilters();
+        }
+
+        desktopInput.addEventListener("input", (e) => syncAndFilter(e.target.value));
+        mobileInput.addEventListener("input", (e) => syncAndFilter(e.target.value));
+      }
+
+      function setupMobileSheet() {
+        const sheet = document.getElementById("mobileSheet");
+        const toggleBtn = document.getElementById("toggleSheetBtn");
+
+        toggleBtn.addEventListener("click", () => {
+          state.isMobileSheetOpen = !state.isMobileSheetOpen;
+          sheet.classList.toggle("open", state.isMobileSheetOpen);
+        });
+
+        sheet.addEventListener("click", (e) => {
+          if (e.target.classList.contains("sheet-handle")) {
+            state.isMobileSheetOpen = !state.isMobileSheetOpen;
+            sheet.classList.toggle("open", state.isMobileSheetOpen);
+          }
+        });
+      }
+
+      // Registration modal multi-step flow with map picker.
+      function setupRegistrationFlow() {
+        const modal = document.getElementById("registrationModal");
+        const openBtns = [document.getElementById("openRegisterDesktop"), document.getElementById("openRegisterMobile")];
+        const closeBtn = document.getElementById("closeRegister");
+        const prevBtn = document.getElementById("prevStep");
+        const nextBtn = document.getElementById("nextStep");
+        const submitBtn = document.getElementById("submitRegister");
+        const form = document.getElementById("registrationForm");
+        const stepDots = document.getElementById("stepDots");
+        const steps = [...document.querySelectorAll(".reg-step")];
+
+        let pickerMap = null;
+        let pickerMarker = null;
+
+        function renderDots() {
+          stepDots.innerHTML = [1, 2, 3]
+            .map((s) => `<span class="step-dot ${state.registerStep === s ? "active" : ""}"></span>`)
+            .join("");
+        }
+
+        function syncSteps() {
+          steps.forEach((step) => {
+            step.classList.toggle("hidden", Number(step.dataset.step) !== state.registerStep);
+          });
+
+          prevBtn.classList.toggle("invisible", state.registerStep === 1);
+          nextBtn.classList.toggle("hidden", state.registerStep === 3);
+          submitBtn.classList.toggle("hidden", state.registerStep !== 3);
+
+          renderDots();
+
+          if (state.registerStep === 3) {
+            setTimeout(() => {
+              if (!pickerMap) {
+                pickerMap = L.map("pickerMap").setView([24.7136, 46.6753], 12);
+                L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+                  maxZoom: 19,
+                  attribution: "&copy; OpenStreetMap contributors",
+                }).addTo(pickerMap);
+
+                pickerMap.on("click", (e) => {
+                  state.pickedLatLng = e.latlng;
+                  if (!pickerMarker) {
+                    pickerMarker = L.marker(e.latlng).addTo(pickerMap);
+                  } else {
+                    pickerMarker.setLatLng(e.latlng);
+                  }
+
+                  document.getElementById("pickedLocationText").textContent = `الموقع المختار: ${e.latlng.lat.toFixed(5)}, ${e.latlng.lng.toFixed(5)}`;
+                });
+              }
+              pickerMap.invalidateSize();
+            }, 120);
+          }
+        }
+
+        function openModal() {
+          modal.classList.add("open");
+          state.registerStep = 1;
+          syncSteps();
+        }
+
+        function closeModal() {
+          modal.classList.remove("open");
+        }
+
+        openBtns.forEach((btn) => btn.addEventListener("click", openModal));
+        closeBtn.addEventListener("click", closeModal);
+
+        modal.addEventListener("click", (e) => {
+          if (e.target === modal) closeModal();
+        });
+
+        nextBtn.addEventListener("click", () => {
+          state.registerStep = Math.min(3, state.registerStep + 1);
+          syncSteps();
+        });
+
+        prevBtn.addEventListener("click", () => {
+          state.registerStep = Math.max(1, state.registerStep - 1);
+          syncSteps();
+        });
+
+        form.addEventListener("submit", (e) => {
+          e.preventDefault();
+          const formData = new FormData(form);
+          const name = formData.get("bizName") || "مشروع جديد";
+          alert(`تم استلام طلب انضمام ${name} بنجاح. سيتم مراجعته قريبًا.`);
+          closeModal();
+          form.reset();
+          state.registerStep = 1;
+          state.pickedLatLng = null;
+          document.getElementById("pickedLocationText").textContent = "الموقع المختار: لم يتم التحديد بعد";
+          if (pickerMarker) {
+            pickerMap.removeLayer(pickerMarker);
+            pickerMarker = null;
+          }
+        });
+
+        syncSteps();
+      }
+
+      function setupGlobalInteractions() {
+        map.on("click", () => {
+          closeProfilePanel();
+        });
+      }
+
+      function init() {
+        renderCategoryPills();
+        setupSearchInputs();
+        setupMobileSheet();
+        setupRegistrationFlow();
+        setupGlobalInteractions();
+        applyFilters();
+      }
+
+      init();
+    </script>
+  </body>
+</html>
