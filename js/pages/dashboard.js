@@ -7,6 +7,7 @@ import { uploadBusinessImage } from "../api/storage.js";
 import { getOverviewByBusiness, getViewsTimeseries } from "../api/analytics.js";
 import { getMyProfile } from "../api/auth.js";
 import { suggestBusinessDescription } from "../ai/openai.js";
+import { navigateTo } from "../lib/routes.js";
 
 let currentUser;
 let currentBusiness;
@@ -18,7 +19,7 @@ let pickerMarker;
 async function ensureAuthAndRole() {
   const session = await getSession();
   if (!session) {
-    location.href = "/auth.html";
+    navigateTo("auth.html");
     return;
   }
 
@@ -27,7 +28,7 @@ async function ensureAuthAndRole() {
   const role = profile?.role || currentUser?.user_metadata?.role;
   if (role !== "business") {
     toast("هذه اللوحة مخصصة لأصحاب المشاريع فقط", "error");
-    setTimeout(() => (location.href = "/index.html"), 900);
+    setTimeout(() => navigateTo("index.html"), 900);
   }
 }
 
@@ -326,7 +327,7 @@ function bindImagePreviews() {
 function bindActions() {
   document.getElementById("logoutBtn").addEventListener("click", async () => {
     await supabase.auth.signOut();
-    location.href = "/index.html";
+    navigateTo("index.html");
   });
 
   document.getElementById("businessForm").addEventListener("submit", submitBusinessForm);

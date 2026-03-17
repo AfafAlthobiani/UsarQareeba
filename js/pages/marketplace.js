@@ -8,6 +8,7 @@ import { listMyFavorites, toggleFavorite, subscribeFavorites } from "../api/favo
 import { trackEvent } from "../api/analytics.js";
 import { getRecommendations } from "../ai/recommendations.js";
 import { businessCardTemplate, createToastContainer, emptyStateTemplate, productCardTemplate, recommendationCardTemplate } from "../components/ui.js";
+import { navigateTo } from "../lib/routes.js";
 
 const categories = ["الكل", "حلويات", "طبخ منزلي", "قهوة", "مخبوزات", "حِرَف يدوية"];
 
@@ -136,7 +137,7 @@ function syncAuthNav() {
   } else {
     authButton.textContent = "دخول أصحاب المشاريع";
     authButtonMobile.textContent = "تسجيل الدخول";
-    authButton.onclick = () => (location.href = "/auth.html");
+    authButton.onclick = () => navigateTo("auth.html");
     authButtonMobile.onclick = authButton.onclick;
     dashboardLink.classList.add("hidden");
   }

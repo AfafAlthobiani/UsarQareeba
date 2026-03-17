@@ -1,5 +1,6 @@
 // Auth API
 import { supabase } from "../lib/supabase.js";
+import { appAbsoluteUrl } from "../lib/routes.js";
 
 export async function signUpBusiness({ name, email, password }) {
   const { data, error } = await supabase.auth.signUp({
@@ -26,7 +27,7 @@ export async function signInWithGoogle() {
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "google",
     options: {
-      redirectTo: `${window.location.origin}/auth.html`,
+      redirectTo: appAbsoluteUrl("auth.html"),
     },
   });
   if (error) throw error;

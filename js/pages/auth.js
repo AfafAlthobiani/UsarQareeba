@@ -3,6 +3,7 @@ import { createToastContainer } from "../components/ui.js";
 import { toast, validateEmail } from "../lib/utils.js";
 import { getSession } from "../lib/supabase.js";
 import { getMyProfile } from "../api/auth.js";
+import { navigateTo } from "../lib/routes.js";
 
 function toggleForms(type) {
   const isLogin = type === "login";
@@ -23,7 +24,7 @@ async function onLoginSubmit(e) {
   try {
     await signInWithEmail({ email, password });
     toast("تم تسجيل الدخول بنجاح", "success");
-    setTimeout(() => (location.href = "/index.html"), 700);
+    setTimeout(() => navigateTo("index.html"), 700);
   } catch (err) {
     toast(err.message || "فشل تسجيل الدخول", "error");
   }
@@ -68,10 +69,10 @@ async function initWithGuard() {
   if (session) {
     const profile = await getMyProfile();
     if (profile?.role === "business") {
-      location.href = "/dashboard.html";
+      navigateTo("dashboard.html");
       return;
     }
-    location.href = "/index.html";
+    navigateTo("index.html");
     return;
   }
 
